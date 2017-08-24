@@ -3,6 +3,7 @@ const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} =require('mongodb');
+var cors = require('cors');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
@@ -13,8 +14,9 @@ var app = express();
 const port = process.env.PORT || 3030;
 
 app.use(bodyParser.json());
-
+app.use(cors())
 app.post('/todos', (req, res) => {
+
     console.log(req.body);
     var todo = new Todo({
         text: req.body.text
@@ -28,6 +30,7 @@ app.post('/todos', (req, res) => {
 });
 
 app.get('/todos', (req, res) => {
+    console.log('============', req.headers);
     Todo.find().then((todos) => {
         res.send({
             todos
