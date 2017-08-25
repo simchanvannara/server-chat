@@ -8,13 +8,27 @@ var cors = require('cors');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {Chat} = require('./models/chat');
+
 var {authenticate} = require('./middleware/authenticate');
 
-var app = express();
-const port = process.env.PORT || 3030;
+var app = express()
+const port = process.env.PORT || 3030
 
-app.use(bodyParser.json());
+app.use(bodyParser.json())
 app.use(cors())
+
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+
+io.on('connection', function(socket){ 
+    // console.log(client);
+    socket.on('chat-send', function(req, res){
+        console.log(req)
+    })
+});
+
+app.get('/socket.io', (req, res)=>{res.send('hi')})
 app.post('/todos', (req, res) => {
 
     console.log(req.body);
@@ -138,8 +152,26 @@ app.delete('/users/me/token', authenticate, (req, res) => {
     })
 })
 
+app.post('/chats', (req, res) => {
+    console.log(req.body);
+    var body = _.pick(req.body, ['text', 'user_id']);
+    var test = new Chat(body);
+
+    test.save().then((success) => {
+        res.status(200).send(success);
+    }).catch((e) => {
+        res.status(400).send(e);
+    })
+    
+})
+
+app.get('/chats', (req, res) => {
+    Chat.find().then((chats) => {
+        res.send(chats);
+    });
+})
+server.listen(3001);
 app.listen(port, () => {
     console.log(`started ${port}`);
 });
-
 module.exports = {app};
